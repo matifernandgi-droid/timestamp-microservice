@@ -11,29 +11,34 @@ app.get("/", (req, res) => {
   res.send("Timestamp Microservice API. Usa /api/:date?");
 });
 
-// Endpoint principal
-app.get("/api/:date?", (req, res) => {
+// RUTA PARA /api (sin parámetro)
+// Esto asegura que freeCodeCamp reciba la fecha actual correctamente
+app.get("/api", (req, res) => {
+  const now = new Date();
+  res.json({
+    unix: now.getTime(),
+    utc: now.toUTCString()
+  });
+});
+
+// RUTA PARA /api/:date (con parámetro)
+app.get("/api/:date", (req, res) => {
   let date = req.params.date;
 
-  // Si no se pasa parámetro, usar fecha actual
-  let parsedDate = date
-    ? !isNaN(date)
-      ? new Date(parseInt(date))
-      : new Date(date)
-    : new Date();
+  let parsedDate = !isNaN(date)
+    ? new Date(parseInt(date))
+    : new Date(date);
 
-  // Validar fecha
   if (parsedDate.toString() === "Invalid Date") {
     return res.json({ error: "Invalid Date" });
   }
 
-  // Responder con JSON esperado por freeCodeCamp
   res.json({
     unix: parsedDate.getTime(),
     utc: parsedDate.toUTCString()
   });
 });
 
-// Configurar puerto dinámico para Render, Heroku, etc.
+// Configurar puerto dinámico para Render
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server running on port ${port}`));
