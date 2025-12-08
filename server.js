@@ -3,7 +3,7 @@ const cors = require("cors");
 
 const app = express();
 
-// Habilitar CORS
+// Habilitar CORS correctamente para FCC
 app.use(cors({ optionsSuccessStatus: 200 }));
 
 // Ruta raíz
@@ -11,21 +11,23 @@ app.get("/", (req, res) => {
   res.send("Timestamp Microservice API. Usa /api/:date?");
 });
 
-// Ruta API
+// Endpoint principal
 app.get("/api/:date?", (req, res) => {
-  let { date } = req.params;
+  let date = req.params.date;
 
-  // Si no envían fecha, usar fecha actual
-  if (!date) {
+  // Si no se pasa fecha o es string vacío, usar la fecha actual
+  if (!date || date === "") {
     const now = new Date();
     return res.json({
       unix: now.getTime(),
-      utc: now.toUTCString(),
+      utc: now.toUTCString()
     });
   }
 
-  // Si el parámetro es solo números grandes, interpretarlo como timestamp
-  if (!isNaN(date)) date = parseInt(date);
+  // Si el parámetro es un número (timestamp), parsearlo
+  if (!isNaN(date)) {
+    date = parseInt(date);
+  }
 
   const parsedDate = new Date(date);
 
@@ -34,14 +36,13 @@ app.get("/api/:date?", (req, res) => {
     return res.json({ error: "Invalid Date" });
   }
 
+  // Responder con JSON esperado por FCC
   res.json({
     unix: parsedDate.getTime(),
-    utc: parsedDate.toUTCString(),
+    utc: parsedDate.toUTCString()
   });
 });
 
-// Configurar puerto
+// Configurar puerto dinámico para Render o Heroku
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
-});
+app.listen(port, () => console.log(`Server running on port ${port}`));
