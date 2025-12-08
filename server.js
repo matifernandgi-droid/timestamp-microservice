@@ -4,7 +4,7 @@ const cors = require("cors");
 const app = express();
 
 // Habilitar CORS
-app.use(cors({ optionSuccessStatus: 200 }));
+app.use(cors({ optionsSuccessStatus: 200 }));
 
 // Ruta raíz
 app.get("/", (req, res) => {
@@ -25,9 +25,7 @@ app.get("/api/:date?", (req, res) => {
   }
 
   // Si el parámetro es solo números grandes, interpretarlo como timestamp
-  if (/^\d+$/.test(date)) {
-    date = parseInt(date);
-  }
+  if (!isNaN(date)) date = parseInt(date);
 
   const parsedDate = new Date(date);
 
