@@ -2,45 +2,48 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
-const PORT = 3000;
 
-// Habilitar CORS para que FreeCodeCamp pueda acceder a tu API
-app.use(cors());
+// Habilitar CORS
+app.use(cors({ optionSuccessStatus: 200 }));
 
-// Ruta de prueba para la raíz
+// Ruta raíz
 app.get("/", (req, res) => {
   res.send("Timestamp Microservice API. Usa /api/:date?");
 });
 
-// Ruta principal: /api/:date?
+// Ruta API
 app.get("/api/:date?", (req, res) => {
-  let dateString = req.params.date;
+  let { date } = req.params;
 
-  // Si no hay fecha, usar fecha actual
-  let date;
-  if (!dateString) {
-    date = new Date();
-  } else {
-    // Si es solo número, parsearlo como timestamp
-    if (/^\d+$/.test(dateString)) {
-      date = new Date(parseInt(dateString));
-    } else {
-      date = new Date(dateString);
-    }
-  }
-
-  // Validar fecha
-  if (date.toString() === "Invalid Date") {
-    res.json({ error: "Invalid Date" });
-  } else {
-    res.json({
-      unix: date.getTime(),
-      utc: date.toUTCString(),
+  // Si no envían fecha, usar fecha actual
+  if (!date) {
+    const now = new Date();
+    return res.json({
+      unix: now.getTime(),
+      utc: now.toUTCString(),
     });
   }
+
+  // Si el parámetro es solo números grandes, interpretarlo como timestamp
+  if (/^\d+$/.test(date)) {
+    date = parseInt(date);
+  }
+
+  const parsedDate = new Date(date);
+
+  // Validar fecha
+  if (parsedDate.toString() === "Invalid Date") {
+    return res.json({ error: "Invalid Date" });
+  }
+
+  res.json({
+    unix: parsedDate.getTime(),
+    utc: parsedDate.toUTCString(),
+  });
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Configurar puerto
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Servidor corriendo en http://localhost:${port}`);
 });
