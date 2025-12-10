@@ -1,42 +1,58 @@
-const express = require('express');
-const cors = require('cors');
+// server.js
+const express = require("express");
 const app = express();
-app.use(cors());
+const cors = require("cors");
 
-const port = process.env.PORT || 3000;
+// habilitar CORS (requerido por freeCodeCamp)
+app.use(cors({ optionSuccessStatus: 200 }));
 
-// Ruta raíz
-app.get('/', (req, res) => {
-  res.send('Timestamp Microservice API — usa /api/timestamp/:date_string?');
+app.use(express.static("public"));
+
+// ruta principal (no necesaria para los tests, pero se deja)
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/views/index.html");
 });
 
-// Ruta con parámetro opcional
-app.get('/api/timestamp/:date_string?', (req, res) => {
-  let { date_string } = req.params;
-  let date;
+// ----------------------------------------------------
+//     TIMESTAMP MICROSERVICE
+// ----------------------------------------------------
+app.get("/api/:date?", (req, res) => {
+  const dateStr = req.params.date;
 
-  // Si no viene date_string → fecha actual
-  if (!date_string) {
-    date = new Date();
-  } else {
-    // Si es solo dígitos → timestamp en ms
-    if (/^\d+$/.test(date_string)) {
-      date = new Date(Number(date_string));
-    } else {
-      date = new Date(date_string);
-    }
+  // Si no se pasa ningún parámetro -> devolver fecha actual
+  if (!dateStr) {
+    const now = new Date();
+    return res.json({
+      unix: now.getTime(),
+      utc: now.toUTCString(),
+    });
   }
 
-  // Validación de fecha
+  // Detectar si es número (timestamp)
+  let date;
+
+  // Si dateStr es un número puro (ej: "1451001600000")
+  if (/^\d+$/.test(dateStr)) {
+    date = new Date(Number(dateStr));
+  } else {
+    date = new Date(dateStr);
+  }
+
+  // Validación
   if (date.toString() === "Invalid Date") {
     return res.json({ error: "Invalid Date" });
   }
 
-  res.json({
+  // Respuesta válida
+  return res.json({
     unix: date.getTime(),
-    utc: date.toUTCString()
+    utc: date.toUTCString(),
   });
 });
 
-// Iniciar servidor
-app.listen(port, () => console.log(`Server listening on port ${port}`));
+// ----------------------------------------------------
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log("Servidor escuchando en el puerto " + port);
+});
