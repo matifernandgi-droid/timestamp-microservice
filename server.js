@@ -1,38 +1,31 @@
-const express = require("express");
-const cors = require("cors");
-
+const express = require('express');
+const cors = require('cors');
 const app = express();
-app.use(cors({ optionsSuccessStatus: 200 }));
+app.use(cors());
 
-// Ruta raíz
-app.get("/", (req, res) => {
-  res.send("Timestamp Microservice API. Usa /api/:date?");
+const port = process.env.PORT || 3000;
+
+app.get('/api/timestamp', (req, res) => {
+  const now = new Date();
+  res.json({ unix: now.getTime(), utc: now.toUTCString() });
 });
 
-// Endpoint principal
-app.get("/api/:date?", (req, res) => {
-  let date = req.params.date;
-  let parsedDate;
+app.get('/api/timestamp/:date_string', (req, res) => {
+  const { date_string } = req.params;
+  let date;
 
-  if (!date) {
-    // Truco para tests 7 y 8: devolver la fecha actual lo más rápido posible
-    parsedDate = new Date();
-  } else if (/^\d+$/.test(date)) {
-    parsedDate = new Date(Number(date));
+  // Si date_string es solo dígitos → lo tratamos como timestamp en ms
+  if (/^\d+$/.test(date_string)) {
+    date = new Date(parseInt(date_string));
   } else {
-    parsedDate = new Date(date);
+    date = new Date(date_string);
   }
 
-  if (parsedDate.toString() === "Invalid Date") {
+  if (isNaN(date.getTime())) {
     return res.json({ error: "Invalid Date" });
   }
 
-  res.json({
-    unix: parsedDate.getTime(),
-    utc: parsedDate.toUTCString()
-  });
+  res.json({ unix: date.getTime(), utc: date.toUTCString() });
 });
 
-// Puerto dinámico para Render
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Server running on port ${port}`));
+app.listen(port, () => console.log(`Server listening on port ${port}`));
