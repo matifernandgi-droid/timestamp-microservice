@@ -5,12 +5,12 @@ app.use(cors());
 
 const port = process.env.PORT || 3000;
 
-// Ruta raíz: mensaje simple
+// Ruta raíz
 app.get('/', (req, res) => {
   res.send('Timestamp Microservice API — usa /api/timestamp/:date_string?');
 });
 
-// Ruta sin parámetro: devuelve fecha actual
+// Ruta sin parámetro: fecha actual
 app.get('/api/timestamp', (req, res) => {
   const now = new Date();
   res.json({
@@ -24,15 +24,15 @@ app.get('/api/timestamp/:date_string', (req, res) => {
   const { date_string } = req.params;
   let date;
 
-  // Si date_string es solo dígitos → lo interpretamos como timestamp en ms
+  // Si es un número válido (timestamp) y tiene 13 dígitos → milisegundos
   if (/^\d+$/.test(date_string)) {
-    date = new Date(parseInt(date_string));
+    date = new Date(Number(date_string));
   } else {
     date = new Date(date_string);
   }
 
-  // Verificamos si la fecha es válida
-  if (isNaN(date.getTime())) {
+  // Verificación de fecha válida
+  if (date.toString() === "Invalid Date") {
     return res.json({ error: "Invalid Date" });
   }
 
